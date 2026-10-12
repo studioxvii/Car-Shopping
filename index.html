@@ -196,6 +196,28 @@ table.dl{width:100%;border-collapse:collapse;font-size:13.5px}
 .mrow .bar{width:4px;align-self:stretch;border-radius:3px;background:var(--cc);flex:0 0 auto}
 .mrow.cur{border-color:var(--acc);background:var(--accbg)}
 .hl{margin:0;padding-left:18px;font-size:13.5px}.hl li{margin:3px 0}
+/* ---------- ranking ---------- */
+.rk{padding:4px 0 2px}
+.rkh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:10px 12px 4px}
+.rkh h3{margin:0;white-space:nowrap}.rkh .sm{font-size:11px}
+.rr{display:grid;grid-template-columns:22px 1fr auto;column-gap:8px;align-items:center;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:7px 12px 8px;text-align:left;cursor:pointer;transition:background .12s}
+#rklist .rr:first-child{border-top:0}.rr:active{background:#f1f5f9}
+.rr .n{font-size:12px;font-weight:800;color:#fff;background:var(--cc);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;grid-row:1/3;align-self:start;margin-top:1px}
+.rr .nm{font-size:14px;font-weight:750;line-height:1.2;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rr .nm small{font-size:11px;font-weight:650;margin-left:4px;display:inline}
+.rr .tot{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em;text-align:right}.rr .tot small{font-size:10px;font-weight:650;display:inline}
+.rr .why{grid-column:2/4;font-size:11.5px;color:var(--ink2);line-height:1.3;margin:1px 0 5px}
+.rr .sb{grid-column:2/4;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sbi{font-size:9.5px;font-weight:750;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);display:flex;justify-content:space-between;line-height:1.1}
+.sbi b{color:var(--ink2);font-variant-numeric:tabular-nums}.sbi .fl{color:var(--warn)}
+.bar5{height:5px;border-radius:3px;background:#edf1f6;margin-top:3px;overflow:hidden}.bar5 i{display:block;height:100%;border-radius:3px;transition:width .35s cubic-bezier(.2,.7,.2,1)}
+.rr.top .n{box-shadow:0 0 0 3px var(--goodbg)}
+.rkf{border-top:1px solid var(--line);padding:0 12px 4px}
+.rkf summary{font-size:12.5px;font-weight:700;color:var(--acc);cursor:pointer;padding:9px 0;list-style:none}
+.rkf summary::-webkit-details-marker{display:none}
+.rkf p,.rkf li{font-size:12px;color:var(--ink2);line-height:1.45}.rkf p{margin:0 0 6px}.rkf ul{margin:0 0 8px;padding-left:16px}.rkf li{margin:0 0 3px}
+.sl{display:grid;grid-template-columns:78px 1fr 30px;align-items:center;gap:8px;font-size:12px;font-weight:650;margin:2px 0}
+.sl input{width:100%;accent-color:var(--acc)}.sl output{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.rkf .btn{margin:4px 0 8px}
 </style></head><body>
 <header class="app-h" id="hdr">
  <div class="ttl"><div class="rt"><h1>SUV Compare</h1><button class="mbtn" id="mbtn" aria-haspopup="dialog">Models ▾</button></div><div class="loc">West Chester 19382 · Chester County<br>Mon, Oct 12, 2026 (ET)</div></div>
@@ -218,6 +240,7 @@ table.dl{width:100%;border-collapse:collapse;font-size:13.5px}
 <!-- ============ COMPARE ============ -->
 <section class="view" id="v-compare">
  <div class="ctx"><span>🛡 Safety (infant in back)</span><span>📦 Cargo</span><span>🔧 Reliability</span><span>~$55k budget (soft)</span><span>New · AWD preferred</span><span>Midsize (not the largest class)</span></div>
+ <div class="card rk" id="rank"></div>
  <div class="cmpbar"><div class="chips scroll" id="colchips"></div><div class="hint" id="cmphint"></div></div>
  <div class="card grid" id="grid"></div>
  <p class="note"><b style="color:var(--good)">★ Best</b> marks the strongest value in each row among the columns shown. No star where data is missing (–) or the row isn't a like-for-like comparison. Tap a model name to open its tab.</p>
@@ -495,6 +518,49 @@ function drawGrid(){var cols=ORDER.filter(function(m){return vis[m]}),idx=cols.m
  $('#grid').innerHTML=h;$('#more').onclick=function(){more=!more;drawGrid()};paintImgs($('#grid'));
  var gb=$('#grid .gbody'),gi=$('#grid .ghin');gi.style.width=wide?(n*112+(n-1)*6)+'px':'';gb.addEventListener('scroll',function(){gi.style.transform='translateX('+(-gb.scrollLeft)+'px)'},{passive:true});
  $$('#grid [data-go]').forEach(function(e){e.onclick=function(){go(e.dataset.go)}})}
+/* ---------- ranking (scored only from ROWS above) ---------- */
+var W0={s:40,c:25,r:25,v:10,t:0},W={};for(var k in W0)W[k]=W0[k];
+var SUBS=[["s","Safety","var(--good)"],["c","Cargo","var(--acc)"],["r","Reliab.","var(--pa)"],["v","Value","var(--warn)"]];
+var AVAIL={passport:[3,"under-$55k unit on the lot"],telluride:[3,"under-$55k unit on the lot"],"4runner":[2,"under-$55k units are in transit or carry a dealer package"]};
+var WHY={passport:"TSP+ and CR \u201cmuch better\u201d; mid-pack cargo, 5 seats",
+ palisade:"TSP+, all rear Good, roomy; avg. reliability, stock unchecked",
+ telluride:"Most cargo, all rear Good; CR \u201cworse\u201d, TSP+ late builds only",
+ pilot:"Big cargo, 8 seats; only TSP, Acceptable rear seat",
+ "4runner":"Top reliability, big cargo; no award, Marginal rear seat",
+ ascent:"TSP+ and EyeSight; small cargo, average reliability",
+ cx90:"TSP+, all rear Good; smallest cargo, CR \u201cworse\u201d",
+ highlander:"Roomy, \u201cbetter\u201d reliability; no award, Marginal rear seat"};
+function r1(x){return Math.round(x*10)/10}
+function subScores(i){var m=ORDER[i],f=[];
+ var aw={3:4,2.5:3,2:2,0:0}[ROWS[0].s[i]],latch=/LATCH G\+/.test(ROWS[0].v[i].h||ROWS[0].v[i])?2:1,rear={3:4,2:3,1:1.5,0:0}[ROWS[1].s[i]];
+ var cg=ROWS[2].s[i],rel=ROWS[3].s[i],pr=-ROWS[6].s[i],av=AVAIL[m];
+ var s=aw+rear+latch,c=cg==null?5:Math.max(0,Math.min(10,cg-39)),r=rel==null?5:{3:10,2:7.5,1:5,0:2.5}[rel];
+ var pp=Math.max(0,Math.min(7,(55000-pr)/1000*0.4)),ap=av?av[0]:1.5;if(!av)f.push("v");
+ return {s:s,c:c,r:r,v:pp+ap,t:ROWS[4].s[i]*5,f:f}}
+function rankList(){var tw=W.s+W.c+W.r+W.v+W.t||1,L=ORDER.map(function(m,i){var q=subScores(i);q.m=m;q.tot=(q.s*W.s+q.c*W.c+q.r*W.r+q.v*W.v+q.t*W.t)/tw*10;return q});
+ L.sort(function(a,b){return b.tot-a.tot||b.s-a.s});return L}
+function drawRankList(){var L=rankList(),cust=Object.keys(W0).some(function(k){return W[k]!=W0[k]});
+ $('#rkw').textContent=(cust?'Your weights':'Weights '+W0.s+' / '+W0.c+' / '+W0.r+' / '+W0.v)+' · score /100';
+ var h='';L.forEach(function(q,j){var x=M[q.m];h+='<button class="rr'+(j==0?' top':'')+'" data-go="'+q.m+'" style="--cc:'+x.col+'"><span class="n">'+(j+1)+'</span><span class="nm">'+x.short+'<small>'+x.yr+'</small></span><span class="tot">'+r1(q.tot).toFixed(1)+'</span><span class="why">'+WHY[q.m]+'</span><span class="sb">';
+  SUBS.forEach(function(s){var v=q[s[0]],fl=q.f.indexOf(s[0])>=0;h+='<span><span class="sbi">'+s[1]+'<b>'+(fl?'<span class="fl">⚑</span>':'')+r1(v)+'</b></span><span class="bar5"><i style="width:'+v*10+'%;background:'+s[2]+(fl?';opacity:.45':'')+'"></i></span></span>'});
+  h+='</span></button>'});
+ $('#rklist').innerHTML=h;var rb=$('#rkreset');rb.disabled=!cust;rb.style.opacity=cust?'':'.5';
+ $$('#rklist [data-go]').forEach(function(e){e.onclick=function(){go(e.dataset.go)}})}
+function drawRank(){
+ var h='<div class="rkh"><h3>Top picks</h3><span class="sm" id="rkw"></span></div><div id="rklist"></div>';
+ h+='<details class="rkf"><summary>How we scored · adjust weights ▾</summary>'+
+ '<p><b>Only data already on this page.</b> Each part is scored 0–10, multiplied by its weight, and the total is scaled to 100. ⚑ = data missing, scored neutral.</p><ul>'+
+ '<li><b>Safety</b> = IIHS award (TSP+ 4 · TSP+ that only covers some build dates 3 · TSP 2 · none 0) + rear-seat crash result (Good with every rear measure Good 4 · Good 3 · Acceptable 1.5 · Marginal 0) + LATCH (G+ 2 · G 1).</li>'+
+ '<li><b>Cargo</b> behind the 2nd row: 1 point per cu ft above 39, capped at 10. The smaller figure is used where a range is listed.</li>'+
+ '<li><b>Reliability</b> (CR predicted): much better 10 · better 7.5 · average 5 · worse 2.5.</li>'+
+ '<li><b>Value</b> = price (0.4 point per $1,000 that the starting base MSRP sits under $55k, max 7) + local availability (under-$55k unit on a lot 3 · only in transit or with a dealer package 2 · ⚑ stock not checked, neutral 1.5). Starting MSRP is the cheapest trim, which is FWD on some models.</li>'+
+ '<li><b>3rd row</b> is a nice-to-have, so its weight starts at 0 (3 rows 10 · optional 5 · none 0). Ties go to the higher safety score.</li></ul>';
+ [["s","Safety"],["c","Cargo"],["r","Reliability"],["v","Value"],["t","3rd row"]].forEach(function(s){h+='<label class="sl">'+s[1]+'<input type="range" min="0" max="50" step="5" value="'+W[s[0]]+'" data-w="'+s[0]+'"><output>'+W[s[0]]+'</output></label>'});
+ h+='<button class="btn" id="rkreset">Reset weights</button></details>';
+ $('#rank').innerHTML=h;
+ $$('#rank input[data-w]').forEach(function(e){e.oninput=function(){W[e.dataset.w]=+e.value;e.nextSibling.textContent=e.value;drawRankList()}});
+ $('#rkreset').onclick=function(){for(var k in W0)W[k]=W0[k];$$('#rank input[data-w]').forEach(function(e){e.value=W[e.dataset.w];e.nextSibling.textContent=e.value});drawRankList()};
+ drawRankList()}
 /* ---------- model views ---------- */
 function has(t,g){return t.g.indexOf(g)>=0}
 function lotUnits(m,trimName){return D.filter(function(d){return d.m==m&&d.fullTrim==trimName})}
@@ -602,7 +668,7 @@ $$('.tab').forEach(function(t){t.onclick=function(){go(t.dataset.v)}});
 function setHH(){document.documentElement.style.setProperty('--hh',$('#hdr').offsetHeight+'px');moveInd()}
 window.addEventListener('resize',setHH);window.addEventListener('hashchange',function(){go(location.hash.slice(1),1)});
 /* ---------- init ---------- */
-drawColChips();drawGrid();ORDER.forEach(buildModel);drawDeals();
+drawRank();drawColChips();drawGrid();ORDER.forEach(buildModel);drawDeals();
 $('#credits').innerHTML+=' '+Object.keys(PH).map(function(k){var p=PH[k];return p.cap+': <a href="'+p.u+'">'+p.by+'</a>'+(p.site!="Wikimedia Commons"?' ('+p.site+')':'')}).join(' · ');
 go(location.hash.slice(1)||"compare",1);setHH();
 </script></body></html>
